@@ -214,7 +214,7 @@ else:
 # Search for the current webcam index
 video_index = 1
 while True:
-    partial_path = "files/output/" + palsy_prefix + str(video_index).zfill(2)
+    partial_path = "files/" + palsy_prefix + str(video_index).zfill(2)
     if len(glob.glob(partial_path + "*")) == 0:
         break
     video_index = video_index + 1

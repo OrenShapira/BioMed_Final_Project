@@ -186,7 +186,7 @@ ap.add_argument("--wlen", type=int, default=2, help="length of sliding window in
 args = vars(ap.parse_args())
 
 # Calcultate parameters from arguments
-video_path = 'files/input/' + args["input"]
+video_path = '../../Database/' + args["input"]
 
 video_index = args["input"][-14:-12]
 video_fps = int(args["input"][-9:-7])
@@ -195,9 +195,9 @@ video_palsy_eye = args["input"][-11]
 window_len_frame = math.ceil(video_fps * args["wlen"])
 
 # Create subfolders for outputs
-output_path = "files/output/" + args["input"][:-4]
-output_path_frames_features = "files/output/" + args["input"][:-4] + "/frames_features"
-output_path_frames_for_tag = "files/output/" + args["input"][:-4] + "/frames_for_tag"
+output_path = "files/" + args["input"][:-4]
+output_path_frames_features = "files/" + args["input"][:-4] + "/frames_features"
+output_path_frames_for_tag = "../3_database_tagging/files/" + args["input"][:-4] + "/frames_for_tag"
 
 if not os.path.exists(output_path):
     os.makedirs(output_path)
@@ -318,7 +318,7 @@ while True:
     if args["pictures"]:
         # show frame name and elapsed time
         elapsed_time = frame_number / video_fps
-        cv2.putText(frame, frame_name+", T = {:.2f} Sec".format(elapsed_time), text_pos_m[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[-1], 2)
+        cv2.putText(frame, frame_name+", T = {:.2f} Sec".format(elapsed_time), text_pos_m[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, C_BLUE, 2)
         
         # save frame to frames_for_tag
         cv2.imwrite(output_path_frames_for_tag+"/"+frame_name+".jpg", frame)

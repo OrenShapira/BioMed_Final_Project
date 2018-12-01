@@ -1,0 +1,6 @@
+#TODO: choose video from webcam also (should work also if first frame is without face, fix data saving - in folder 3, special names - from 1xxx, and so on)
+#TODO: initial & final window length [-window:]
+#TODO: decide when to stop the window from sliding (to avoid normalize problems for static eye)!!!!!!!
+#TODO: consider resizeing
+#TODO: improve preformance (working with dictionary instead of dataframe, relatively face detection, improve functions)
+#TODO: consider face detection (assume face is not static!, update bounding box)
