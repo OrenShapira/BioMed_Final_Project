@@ -1,3 +1,5 @@
+
+
 # imports
 from tkinter import *
 from PIL import Image, ImageDraw, ImageFont, ImageTk
@@ -56,25 +58,24 @@ class LabelTool:
         for i in range(0,len(self.users_list)):
             text_pos_r.append((10,50+i*text_pos_gap))
             text_pos_l.append((700,50+i*text_pos_gap))
-		
+        
         # prep for zoom
-        self.zoom = 2
-
+        self.zoom = 1
         # ----------------- GUI stuff ---------------------
         
-		# upper panel (dir, eye, user, load)
+        # upper panel (dir, eye, user, load)
         self.upperPanel = Frame(self.frame)
         self.upperPanel.grid(row=0, column=1, sticky=W + E)
-		
+        
         self.filesDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'files')
-		
+        
         self.label = Label(self.frame, text="Dir Path:", width=7)
         self.label.grid(row=0, column=0, sticky=W + E)
         self.dirEntry = Entry(self.upperPanel, width = 100)
         self.dirEntry.insert(END, self.filesDir)
         self.dirEntry.config(state='disabled')
         self.dirEntry.pack(side=LEFT, padx=5, pady=3)
-		
+        
         self.label = Label(self.upperPanel, text="Tag Media:", width=10)
         self.label.pack(side=LEFT, padx=5, pady=3)
         self.media_list = [f.name for f in os.scandir(self.filesDir) if f.is_dir()]
@@ -84,7 +85,7 @@ class LabelTool:
         self.currentMedia = self.mediaName.get()  # init
         self.mediaList.pack(side=LEFT, padx=5, pady=3)
         self.mediaList.config(width=25)
-		
+        
         self.label = Label(self.frame, text="Eye:", width=10)
         self.label.grid(row=0, column=2, sticky=W + E)
         self.eyeName = StringVar()
@@ -93,7 +94,7 @@ class LabelTool:
         self.currentEye = self.eyeName.get()  # init
         self.eyeList.grid(row=0, column=3)
         self.eyeList.config(width=10)
-		
+        
         self.label = Label(self.frame, text="User:", width=10)
         self.label.grid(row=0, column=4, sticky=W + E)
         self.userName = StringVar()
@@ -106,17 +107,17 @@ class LabelTool:
         # center panel for labeling
         self.mainPanel = Canvas(self.frame, background="white", width=900, height=600)
         self.mainPanel.grid(row=1, column=1, rowspan=3, columnspan=1, sticky=W + N)
-		
+        
         # right panel
         self.ldBtn = Button(self.frame, text="Load Dir", width=20, background="yellow1", command=self.loadDir)
         self.ldBtn.grid(row=1, column=2, rowspan=1, columnspan=4, sticky=W + E)
-		
+        
         self.btnClass = Button(self.frame, text='Save & Export Labels', width=10, background="green1", command=self.saveAndExport)
         self.btnClass.grid(row=2, column=2, rowspan=1, columnspan=2, sticky=W + E)
-		
+        
         self.btnClass = Button(self.frame, text='Reset Labels', width=10, background="red1", command=self.resetLabels)
         self.btnClass.grid(row=2, column=4, rowspan=1, columnspan=2, sticky=W + E)
-		
+        
         self.plotCurrEyePanel = Canvas(self.frame, background="white", width=360, height=550)
         self.plotCurrEyePanel.grid(row=3, column=2, rowspan=1, columnspan=4, sticky=W + N)
 
@@ -131,19 +132,19 @@ class LabelTool:
         self.decreaseBtn.pack(side=LEFT, padx=5, pady=3)
         self.nextBtn = Button(self.ctrPanel1, text='Next >>', width=10, background="orange", command=self.nextImage)
         self.nextBtn.pack(side=LEFT, padx=5, pady=3)
-		
+        
         self.currentLabelValue = Label(self.ctrPanel1, text="")
         self.currentLabelValue.pack(side=RIGHT, padx=5)
         self.currentLabelTitle = Label(self.ctrPanel1, text="Current Label %s:" % str(eye_open_levels))
         self.currentLabelTitle.pack(side=RIGHT, padx=5)
-		
+        
         self.ctrPanel2 = Frame(self.frame)
         self.ctrPanel2.grid(row=8, column=1, rowspan=1, columnspan=1, sticky=W + E)
         self.nextBtn = Button(self.ctrPanel2, text='Zoom In', width=10, background="magenta", command=self.zoomIn)
         self.nextBtn.pack(side=LEFT, padx=5, pady=3)
         self.nextBtn = Button(self.ctrPanel2, text='Zoom Out', width=10, background="magenta", command=self.zoomOut)
         self.nextBtn.pack(side=LEFT, padx=5, pady=3)
-		
+        
         self.goBtn = Button(self.ctrPanel2, text='Go', background="magenta", command=self.gotoImage)
         self.goBtn.pack(side=RIGHT)
         self.idxEntry = Entry(self.ctrPanel2, width=5)
@@ -152,25 +153,25 @@ class LabelTool:
         self.tmpLabel.pack(side=RIGHT, padx=5)
         self.progLabel = Label(self.ctrPanel2, text="Progress:     /    ")
         self.progLabel.pack(side=RIGHT, padx=5)
-		
-		# right low panel for key menu (60 characters per line)
+        
+        # right low panel for key menu (60 characters per line)
         self.keyMenuText = "                                ** Key Menu **                       \r"\
         "     -Left (←): Go backforward                    -Right (→): Go forward   \r"\
         "       -Up (↑): Increase label                           -Down (↓): Decrease label\r"\
         "  -BackSpace: Zoom out                         -Space: Zoom in          \r"
-		
+        
         self.label = Label(self.frame, text=self.keyMenuText)
         self.label.grid(row=7, column=2, rowspan=2, columnspan=4, sticky=W)
         
         # key binding
-        self.parent.bind("<Left>", self.prevImage) 		# press left arrow to go backforward
-        self.parent.bind("<Right>", self.nextImage)		# press right arrow to go forward
+        self.parent.bind("<Left>", self.prevImage)         # press left arrow to go backforward
+        self.parent.bind("<Right>", self.nextImage)        # press right arrow to go forward
         self.parent.bind("<Down>", self.decreaseLabel) # press down arrow to adjust label (decrease)
-        self.parent.bind("<Up>", self.increaseLabel)  	# press up arrow to adjust label (increase)
-        self.parent.bind("<BackSpace>", self.zoomOut) 	# press backspace to zoom out
-        self.parent.bind("<space>", self.zoomIn)  		# press space to zoom in
-		
-	# define functions
+        self.parent.bind("<Up>", self.increaseLabel)      # press up arrow to adjust label (increase)
+        self.parent.bind("<BackSpace>", self.zoomOut)     # press backspace to zoom out
+        self.parent.bind("<space>", self.zoomIn)          # press space to zoom in
+        
+    # define functions
     def loadDir(self):
         s = self.dirEntry.get()
         self.workingDir = os.path.join(self.filesDir,self.currentMedia)
@@ -179,23 +180,22 @@ class LabelTool:
         self.imageDir = os.path.join(self.workingDir,'frames_for_tag')
         self.imageList = [f for f_ in [glob.glob(os.path.join(self.imageDir, e), recursive=True) for e in
                                        ('.\**\*.JPG', '.\**\*.PNG')] for f in f_]
-									   
-		# check if path includes images
+                                       
+        # check if path includes images
         if len(self.imageList) == 0:
             print('Dir load failed! No images found in the specified dir!')
             ctypes.windll.user32.MessageBoxW(0,'Dir load failed! No images found in the specified dir!',"Message",0)
             return
-			
-		# get label dir
+            
+        # get label dir
         self.labelDir = self.workingDir
-		
+        
         self.frame_names = [self.currentMedia+'_frame'+"{:04d}".format(frame_number) for frame_number in range(0,len(self.imageList))]
         self.df_labels = pd.DataFrame()
         self.df_labels['frame_name'] = self.frame_names
-        		
+                
         for user in self.users_list:
-            for eye in self.eyes_list:
-        
+            for eye in self.eyes_list:        
                 try:
                     load_xlsx = pd.ExcelFile(self.labelDir+'\\'+self.currentMedia+"_labels.xlsx")
                     load_sheet = pd.read_excel(load_xlsx,'labels')
@@ -204,16 +204,15 @@ class LabelTool:
                     label_column = pd.Series([np.nan]*len(self.imageList))
         
                 self.df_labels[user+'_'+eye] = pd.to_numeric(label_column, downcast='float')
-		
-		# default to the 1st image in the collection
+            
+        
+        # default to the 1st image in the collection
         self.cur = 0
         self.total = len(self.imageList)
         self.dir_is_active = 1
         self.currentLabel = self.currentUser+'_'+self.currentEye
         self.video_fps = int(self.currentMedia[-5:-3])
-
         self.loadImage()
-        print('Dir load completed! %d images loaded from %s!' % (self.total, self.currentMedia))
         ctypes.windll.user32.MessageBoxW(0,'Dir load completed! %d images loaded from %s!' % (self.total, self.currentMedia),"Message",0)
 
     def loadImage(self):
@@ -229,14 +228,14 @@ class LabelTool:
         # create font object with the font file and specify desired size         
         font = ImageFont.truetype("arial.ttf", 20)
                 
-		 # show current label
+         # show current label
         if (self.df_labels[self.currentLabel].isnull()[self.cur]):
             self.currentLabelIndex = 0
         else:
             self.currentLabelIndex = eye_open_levels.index(self.df_labels[self.currentLabel][self.cur])
         
         self.currentLabelValue.config(text="%.2f (%s)" % (self.df_labels[self.currentLabel][self.cur],self.levelToPercentage(self.df_labels[self.currentLabel][self.cur])))
-		
+        
         # print labels
         i = 0
         for user in self.users_list:
@@ -344,7 +343,7 @@ class LabelTool:
         self.figurePhoto = tk.PhotoImage(master=self.plotCurrEyePanel, width=figure_w, height=figure_h)
         self.plotCurrEyePanel.create_image(figure_w/2 + 25,figure_h/2 - 50,image=self.figurePhoto)
         tkagg.blit(self.figurePhoto, figure_canvas_agg.get_renderer()._renderer, colormode=2)
-	
+    
     def levelToPercentage(self, level):
         precentageFloat = level*100
         precentageString = "%.0f%s" % (precentageFloat,'%')
@@ -355,7 +354,7 @@ class LabelTool:
             self.cur = self.total-1
         else:
             self.cur -= 1
-		
+        
         self.loadImage()
 
     def nextImage(self, event=None):
@@ -373,7 +372,7 @@ class LabelTool:
             self.cur += 1
            
         if ((self.df_labels[self.currentLabel].isnull()[self.cur]) and (self.previous_label is not np.nan)):
-            self.df_labels.at[self.cur,self.currentLabel] = self.previous_label		
+            self.df_labels.at[self.cur,self.currentLabel] = self.previous_label        
         
         self.loadImage()
 
@@ -381,22 +380,22 @@ class LabelTool:
         self.decrease_label = eye_open_levels[self.currentLabelIndex-1]
         self.df_labels.at[self.cur,self.currentLabel] = self.decrease_label
         self.loadImage()
-			
+            
     def increaseLabel(self, event=None):
         if (self.currentLabelIndex == number_of_levels):
             self.increase_label = eye_open_levels[0]
         else:
             self.increase_label = eye_open_levels[self.currentLabelIndex+1]
-		
+        
         self.df_labels.at[self.cur,self.currentLabel] = self.increase_label
         self.loadImage()
-			
+            
     def gotoImage(self):
         idx = int(self.idxEntry.get())
         if 0 <= idx <= self.total-1:
             self.cur = idx
             self.loadImage()
-	
+    
     def setEye(self, event=None):
         self.currentEye = self.eyeName.get()
         print('set current eye to :', self.currentEye)
@@ -404,31 +403,31 @@ class LabelTool:
     def setUser(self, event=None):
         self.currentUser = self.userName.get()
         print('set current user to :', self.currentUser)
-		
+        
     def setMedia(self, event=None):
         self.currentMedia = self.mediaName.get()
         print('set current media to :', self.currentMedia)
-	
+    
     def saveAndExport(self, event=None):
         if (self.dir_is_active == 1):
-        	self.df_labels.to_excel(self.labelDir+'\\'+self.currentMedia+"_labels.xlsx",sheet_name='labels')
-        	print('Save and Export completed!')
-        	ctypes.windll.user32.MessageBoxW(0,'Save and Export completed!',"Message",0)
-        	# save plot to file
-        	plt.savefig(self.labelDir+'\\'+self.currentMedia+"_labels_graphs.png",bbox_inches='tight',dpi=300)
+            self.df_labels.to_excel(self.labelDir+'\\'+self.currentMedia+"_labels.xlsx",sheet_name='labels')
+            print('Save and Export completed!')
+            ctypes.windll.user32.MessageBoxW(0,'Save and Export completed!',"Message",0)
+            # save plot to file
+            plt.savefig(self.labelDir+'\\'+self.currentMedia+"_labels_graphs.png",bbox_inches='tight',dpi=300)
         else:
-        	print('Save and Export faild! dir is not active!')
-        	ctypes.windll.user32.MessageBoxW(0,'Save and Export faild! dir is not active!',"Message",0)
-	
+            print('Save and Export faild! dir is not active!')
+            ctypes.windll.user32.MessageBoxW(0,'Save and Export faild! dir is not active!',"Message",0)
+    
     def resetLabels(self, event=None):
         if (self.dir_is_active == 1):
-        	self.df_labels[self.currentLabel] = pd.Series([np.nan]*len(self.imageList))
-        	print('Reset labels completed! (%s column set to NaN)!' % (self.currentLabel))
-        	ctypes.windll.user32.MessageBoxW(0,'Reset labels completed! (%s column set to NaN)!' % (self.currentLabel),"Message",0)
-        	self.loadImage()
+            self.df_labels[self.currentLabel] = pd.Series([np.nan]*len(self.imageList))
+            print('Reset labels completed! (%s column set to NaN)!' % (self.currentLabel))
+            ctypes.windll.user32.MessageBoxW(0,'Reset labels completed! (%s column set to NaN)!' % (self.currentLabel),"Message",0)
+            self.loadImage()
         else:
-        	print('Reset labels faild! dir is not active!')
-        	ctypes.windll.user32.MessageBoxW(0,'Reset labels faild! dir is not active!',"Message",0)
+            print('Reset labels faild! dir is not active!')
+            ctypes.windll.user32.MessageBoxW(0,'Reset labels faild! dir is not active!',"Message",0)
     
     def zoomIn(self, event=None):
         self.zoom *= 1.2
