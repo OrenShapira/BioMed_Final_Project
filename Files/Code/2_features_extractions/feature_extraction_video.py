@@ -1,12 +1,14 @@
 # =============================== USAGE: ===============================
-# python feature_extraction.py --user TOM/OREN --input palsy/normal_xx_y_zzfps.mp4 
+# python feature_extraction_video.py --input palsy/normal_xx_y_zzfps.mp4 
 #(xx = video index, y = palsy eye (l/r/n), zz = fps)
 # 
 # Optionals:
 # (--ear, --r2, --ellipse, --poly) : Features to be considered (default: 1)
 # --pictures                       : Save pictures containing each frame (default: 1)
 # --graphs                         : Save graph of the scores given to each frame (default: 1)
+# --times                          : Plot histograms of performance analysis (default: 1)
 # --wlen                           : Length of sliding window in seconds (default: 2)
+# --face_frame                     : Detect faces every x frames (default: 1)
 # ======================================================================
 
 # Import necessary packages
@@ -16,7 +18,7 @@ import pandas as pd
 import numpy as np
 import math
 import argparse
-#import imutils
+import imutils
 import time
 import dlib
 import cv2
@@ -173,16 +175,17 @@ def normalize_score(curr_score, min_score, max_score, PREC_DIGITS):
 # Define argument names
 ap = argparse.ArgumentParser()
 ap.add_argument("--input", required=True, help="path to input video file")
-ap.add_argument("--user", required=True, help="user name")
 ap.add_argument("--palsy", default=1, help="whether to use the palsy_eye feature")
 ap.add_argument("--ear", type=int, default=1, help="whether to use EAR feature")
-ap.add_argument("--r2", type=int, default=1, help="whether to use 1-r^2 feature")
+ap.add_argument("--r2", type=int, default=0, help="whether to use 1-r^2 feature")
 ap.add_argument("--ellipse", type=int, default=1, help="whether to use ellipse area feature")
 ap.add_argument("--poly", type=int, default=1, help="whether to use polygon area feature")
-ap.add_argument("--pictures", type=int, default=1, help="whether to save frame pictures")
-ap.add_argument("--graphs", type=int, default=1, help="whether to show graphs of scores")
-ap.add_argument("--times", type=int, default=1, help="show timing histograms")
+ap.add_argument("--pictures", type=int, default=0, help="whether to save frame pictures")
+ap.add_argument("--tag", type=int, default=0, help="whether to save frames for tag")
+ap.add_argument("--graphs", type=int, default=0, help="whether to show graphs of scores")
+ap.add_argument("--times", type=int, default=0, help="show timing histograms")
 ap.add_argument("--wlen", type=int, default=2, help="length of sliding window in seconds")
+ap.add_argument("--face_frame", type=int, default=1, help="number of frames to search for faces")
 args = vars(ap.parse_args())
 
 # Calcultate parameters from arguments
@@ -203,7 +206,7 @@ if not os.path.exists(output_path):
     os.makedirs(output_path)
 if not os.path.exists(output_path_frames_features) and args["pictures"]:
     os.makedirs(output_path_frames_features)
-if not os.path.exists(output_path_frames_for_tag) and args["pictures"]:
+if not os.path.exists(output_path_frames_for_tag):
     os.makedirs(output_path_frames_for_tag)
     
 output_path_full = output_path + "/" + args["input"][:-4]
@@ -266,7 +269,7 @@ fileStream = True
 time.sleep(1.0)
 
 frame_number = 0
-rects_old = []
+rects = []
 action = 0
 
 land_time = []
@@ -297,30 +300,28 @@ while True:
     if not grabbed:
         break
     
+    # Resize the frame
+    frame = imutils.resize(frame, width=900)
+    
     frame_time_end = time.clock()
     frame_time.append(1000*(frame_time_end - frame_time_start))
     total_time_frame = total_time_frame + (frame_time_end - frame_time_start)
     
 
     # Detect faces in the grayscale frame
-    if frame_number == 0:
+    if frame_number % args["face_frame"] == 0 or len(rects) != 1:
        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
        rects = detector(gray, 0)
-    
-    # If no faces were detected, extract facial landmarks based on the bounding box from the previous frame
-    if (len(rects) != 1):
-        rects = rects_old
-    rects_old = rects
     
     # frame name
     frame_name = args["input"][:-4]+'_frame'+"{:04d}".format(frame_number)
     
-    if args["pictures"]:
-        # show frame name and elapsed time
-        elapsed_time = frame_number / video_fps
-        cv2.putText(frame, frame_name+", T = {:.2f} Sec".format(elapsed_time), text_pos_m[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, C_BLUE, 2)
-        
-        # save frame to frames_for_tag
+    # show frame name and elapsed time
+    elapsed_time = frame_number / video_fps
+    cv2.putText(frame, frame_name+", T = {:.2f} Sec".format(elapsed_time), text_pos_m[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[-1], 2)
+    
+    # save frame to frames_for_tag
+    if args["tag"]:
         cv2.imwrite(output_path_frames_for_tag+"/"+frame_name+".jpg", frame)
     
     if (len(rects) != 1):
@@ -329,19 +330,11 @@ while True:
             cv2.putText(frame, "{:d} faces detected!".format(len(rects)), text_pos_m[1], cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[-1], 2)
         
         # prepare NaN raw for current frame
-        df_nan_row = [float('NaN')]*(len(df_column)-1)
+        df_nan_row = [float('NaN')]*(len(df_column))
         
-        # create new Dataframe for first frame, otherwise concatenate to exist DataFrame
-        if (frame_number == 0):
-            #df_h_scores = pd.DataFrame([df_nan_row],columns = df_column)
-            #df_p_scores = pd.DataFrame([df_nan_row],columns = df_column)
-            df_h_scores_n = pd.DataFrame([df_nan_row],columns = df_column)
-            df_p_scores_n = pd.DataFrame([df_nan_row],columns = df_column)
-        else:
-            #df_h_scores = pd.concat([df_h_scores, pd.DataFrame([df_nan_row],columns = df_column)])
-            #df_p_scores = pd.concat([df_p_scores, pd.DataFrame([df_nan_row],columns = df_column)])
-            df_h_scores_n.loc[frame_number] = [df_nan_row]
-            df_p_scores_n.loc[frame_number] = [df_nan_row]
+        # write a row of NaNs
+        csv_writer_h.writerow(df_nan_row)
+        csv_writer_p.writerow(df_nan_row)
         
     else:
         if(args["pictures"]):
@@ -428,7 +421,7 @@ while True:
                                                                                 curr_p_score,min_p_score[feature],max_p_score[feature], 
                                                                                 PREC_DIGITS)
                 # Determine the window size for normalization
-                action = define_window_size(df_column[feature_index], curr_h_score, min_h_score[feature], max_h_score[feature], h_scores[feature][0])            
+                action = define_window_size(df_column[feature_index], curr_h_score, min_h_score[feature], max_h_score[feature], h_scores[feature][0])
             
             # Append to row for normalized data frame
             df_h_row_n.append(curr_h_score_n)
@@ -476,27 +469,25 @@ while True:
             
             feature_index = feature_index + 1
         
-    norm_time.append(1000 * norm_time_total)
-    total_time_frame = total_time_frame + norm_time_total
-    
     # Create new Dataframe for first frame, otherwise concatenate to exist DataFrame
     df_time_start = time.clock()
     
-    if (frame_number == 0):
+    if (len(rects) == 1):
+        norm_time.append(1000 * norm_time_total)
+        total_time_frame = total_time_frame + norm_time_total
         csv_writer_h.writerow(df_h_row_n)
         csv_writer_p.writerow(df_p_row_n)
-        if args["pictures"]:
-            # Get frame dimentions
-            height, width = frame.shape[:2]
-            # Define the codec and create VideoWriter object
-            video_out = cv2.VideoWriter(output_path_full+"_out.mp4",cv2.VideoWriter_fourcc('m','p','4','v'), video_fps, (width,height))
-    else: 
-        csv_writer_h.writerow(df_h_row_n)
-        csv_writer_p.writerow(df_p_row_n)
-        
+           
     df_time_end = time.clock()
     df_time.append(1000* (df_time_end - df_time_start))
     total_time_frame = total_time_frame + (df_time_end - df_time_start)
+    
+    
+    if (frame_number == 0) and args["pictures"]:
+        # Get frame dimentions
+        height, width = frame.shape[:2]
+        # Define the codec and create VideoWriter object
+        video_out = cv2.VideoWriter(output_path_full+"_out.mp4",cv2.VideoWriter_fourcc('m','p','4','v'), video_fps, (width,height))
     
     # Display the resulting frame
     cv2.imshow('Frame', frame)
