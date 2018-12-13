@@ -923,3 +923,5 @@ Files/Code/2_features_extractions/files/output/palsy_05_l_25fps/frames_for_tag/p
 Files/Code/2_features_extractions/files/output/palsy_05_l_25fps/frames_for_tag/palsy_05_l_25fps_frame0209.jpg
 Files/Code/1_face_and_eye_detection/1_3_real_time_facial_landmarks/files/output/webcam_02_out.mp4
 Files/Code/1_face_and_eye_detection/1_4_real_time_blink_detection/files/output/webcam_02_out.mp4
+*.jpg
+*.mp4
