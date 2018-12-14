@@ -27,23 +27,23 @@ cd "C:\Users\אורן\Documents\GitHub\BioMed_Final_Project\Files")
 :: 4. get inputs from user
 echo 4. get inputs from user
 set /p "input_kind=...Choose input kind? ENTER [v]ideo/[w]ebcam = "
-set /p "run_kind=...run kind? ENTER []/[_full] = "
 if %input_kind%==v (
 	set /p "video_name=...Enter video name? ENTER normal/palsy_xx = "
 	for /f "delims=" %%a in ('dir /s /b ..\..\Database\!video_name!*') do set "input_path=%%~nxa"
+	set /p "run_kind=...run kind? ENTER []/[_full] = "
 	:: 5. set relevant paths
 	echo 5. set relevant paths
 	:: 6. run scripts
 	echo 6. run script
 	echo ...
-	python feature_extraction_video%run_kind%.py --input !input_path! --tag 1 --face_frame 25
+	python feature_extraction_video!run_kind!.py --input !input_path! --tag 1 --face_frame 25
 )
 if %input_kind%==w (
 	:: 5. run scripts
 	set /p "eye=...Choose palsy eye? ENTER [l]eft/[r]ight/[n]one = "
 	echo 5. run script
 	echo ...
-	python feature_extraction_webcam%run_kind%.py --palsy_eye !eye! --tag 1 --face_frame 800
+	python feature_extraction_webcam.py --palsy_eye !eye! --tag 1 --face_frame 800
 )
 
 
