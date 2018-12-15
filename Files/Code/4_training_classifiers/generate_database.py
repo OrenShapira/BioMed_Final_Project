@@ -11,6 +11,7 @@
 #                                    Usage:
 #                                     --weights w1 w2 ... wN : for N users (default: N=2). All weights must sum into 1
 # -- levels                        : The number of levels used for tagging (default: 5)
+# --graphs                         : Save graph of the scores given to each frame (default: 1)
 
                                              
 # ======================================================================
@@ -22,13 +23,29 @@ import numpy as np
 import pandas as pd
 from io import StringIO
 from csv import writer
+import matplotlib.pyplot as plt
+
+# Define color list
+C_RED     = (0,0,255)
+C_CYAN    = (255,255,0)
+C_MAGENTA = (255,0,255)
+C_SILVER  = (192,192,192)
+C_LIME    = (0,255,0)
+C_PURPLE  = (128,0,128)
+C_YELLOW  = (0,255,255)
+C_WHITE   = (255,255,255)
+C_BLACK   = (0,0,0)
+C_BLUE    = (255,0,0)
+C_ORANGE  = (0,140,255)
+colors = [C_ORANGE,C_PURPLE,C_MAGENTA,C_CYAN,C_SILVER,C_LIME,C_YELLOW,C_WHITE,C_BLACK,C_BLUE,C_RED]
+
+PREC_DIGITS = 2
 
 # ====================================================
 # UNDERSTAND WHICH VIDEOS TO USE FOR LEARNING
 # ====================================================
 # Define argument names
 ap = argparse.ArgumentParser()
-ap.add_argument("--user", required=True, help="user name")
 ap.add_argument("--ear", type=int, default=1, help="whether to use EAR feature")
 ap.add_argument("--r2", type=int, default=0, help="whether to use 1-r^2 feature")
 ap.add_argument("--ellipse", type=int, default=1, help="whether to use ellipse area feature")
@@ -36,6 +53,7 @@ ap.add_argument("--poly", type=int, default=1, help="whether to use polygon area
 ap.add_argument("--exclude", nargs='*', default=[], help="videos to be discarded from learning")
 ap.add_argument("--weights", type=float, nargs='*', default=[0.5,0.5], help="the importance of the tags of each user")
 ap.add_argument("--levels", type=int, default=5, help="the number of levels used for tagging")
+ap.add_argument("--graphs", type=int, default=1, help="whether to save graphs of scores")
 args = vars(ap.parse_args())
 
 # Find files that have extracted features
@@ -96,7 +114,7 @@ weights = args["weights"]
 levels = args["levels"]
 
 # Define df_column
-df_column = ['video_name', 'frame_number', 'eye_location']
+df_column = ['video_name', 'frame_number', 'elapsed_time', 'eye_location']
 
 # Add columns for features
 if args["ear"]:
@@ -136,6 +154,7 @@ for file in file_names_final:
         # +++ Start from LEFT eye +++
         df_row_left = [file]
         df_row_left.append(int(df_labels.loc[i,'frame_name'].split('_')[4][5:]))
+        df_row_left.append(float(df_labels.loc[i,'elapsed_time']))
         df_row_left.append('left')
         # Continue only if there are non-null features AND there are non-null tags
         if not df_features_left.iloc[i,:-1].isnull().all() and not df_labels.loc[i,tag_left_cols].isnull().all():
@@ -164,6 +183,7 @@ for file in file_names_final:
         # +++ Do the same for RIGHT eye +++
         df_row_right = [file]
         df_row_right.append(int(df_labels.loc[i,'frame_name'].split('_')[4][5:]))
+        df_row_right.append(float(df_labels.loc[i,'elapsed_time']))
         df_row_right.append('right')
         # Continue only if there are non-null features AND there are non-null tags
         if not df_features_right.iloc[i,:-1].isnull().all() and not df_labels.loc[i,tag_right_cols].isnull().all():
@@ -197,3 +217,63 @@ df_database.to_excel(writer,sheet_name='database')
 writer.save()
 writer.close()
 
+# === SAVE GRAPHS OF FEATURES VS. LABELS, FOR EACH VIDEO IN THE DATABASE ===
+if args["graphs"]:
+    # Load data frames from excel files
+    df_db_xlsx = pd.ExcelFile("files/database.xlsx")
+    df_db = pd.read_excel(df_db_xlsx,'database')
+    
+    # Run for each video in the database
+    for file in file_names_final:
+        # Choose only frames which are relevant for the current video & eye 
+        df_file_l = df_db.loc[(df_db['video_name'] == file) & (df_db['eye_location'] == 'left')]
+        df_file_r = df_db.loc[(df_db['video_name'] == file) & (df_db['eye_location'] == 'right')]
+        
+        plt.figure(figsize=(14,7))
+    
+        # plot graph for left eye
+        ax_left = plt.subplot(2,1,1)
+        # plot features and labels
+        feature_index = 0
+        for feature in df_column[4:]:
+            df_file_l.plot(kind='line',x='frame_number',y=feature,color=tuple(reversed(np.divide(colors[feature_index],255))),ax=ax_left)
+            feature_index = feature_index + 1
+        # edit titles and axis
+        plt.title(file+': Normalized features & labels vs frame_number & elapsed_time')
+        plt.xlabel("")
+        plt.ylabel('scores & labels - left eye')
+        ax_left.set_xlim([df_file_l.loc[:,'frame_number'].iloc[0],df_file_l.loc[:,'frame_number'].iloc[-1]])
+        ax_left.set_ylim([0,1])
+        
+        # plot graph for right eye
+        ax_right = plt.subplot(2,1,2)
+        # plot features and labels
+        feature_index = 0
+        for feature in df_column[4:]:
+            df_file_r.plot(kind='line',x='frame_number',y=feature,color=tuple(reversed(np.divide(colors[feature_index],255))),ax=ax_right)
+            feature_index = feature_index + 1
+        # edit titles and axis
+        plt.title(file+': Normalized features & labels vs frame_number & elapsed_time')
+        plt.xlabel("")
+        plt.ylabel('scores & labels - right eye')
+        ax_right.set_xlim([df_file_r.loc[:,'frame_number'].iloc[0],df_file_r.loc[:,'frame_number'].iloc[-1]])
+        ax_right.set_ylim([0,1])
+        
+        # set second x-axis (elapsed_time)
+        ax2 = ax_right.twiny()
+        # set the ticklabel position in the second x-axis, then convert them to the position in the first x-axis
+        ax2_ticks_num = 6
+        newlabel = [round((x*df_file_r.loc[:,'elapsed_time'].iloc[-1]/(ax2_ticks_num-1)),PREC_DIGITS) for x in range(0, ax2_ticks_num)]
+        video_fps = int(file[11:13])
+        newpos = [int(np.ceil(x*video_fps)) for x in newlabel]
+        # set the second x-axis
+        ax2.set_xticks(newpos)
+        ax2.set_xticklabels(newlabel)
+        ax2.xaxis.set_ticks_position('bottom') 
+        ax2.xaxis.set_label_position('bottom')
+        ax2.spines['bottom'].set_position(('outward', 36))
+        ax2.set_xlabel('elapsed_time [Sec]')
+        
+        # save plot to file
+        plt.savefig("files/" + file +"_scores_labels_graphs.png",bbox_inches='tight',dpi=300)
+            

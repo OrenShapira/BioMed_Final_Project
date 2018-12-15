@@ -23,6 +23,6 @@ call activate "opencv-envpython=3.6"
 cd "C:\Users\אורן\Documents\GitHub\BioMed_Final_Project\Files")
 
 :: 4. run scripts
-python generate_database.py --user TOM --exclude normal palsy 3 6 
+python generate_database.py 
 
 pause
