@@ -925,3 +925,13 @@ Files/Code/1_face_and_eye_detection/1_3_real_time_facial_landmarks/files/output/
 Files/Code/1_face_and_eye_detection/1_4_real_time_blink_detection/files/output/webcam_02_out.mp4
 *.jpg
 *.mp4
+Files/Code/2_features_extraction/files/normal_01_n_30fps/normal_01_n_30fps_scores_graphs.png
+Files/Code/2_features_extraction/files/normal_01_n_30fps/normal_01_n_30fps_scores_n.xlsx
+Files/Code/2_features_extraction/files/normal_02_n_30fps/normal_02_n_30fps_scores_graphs.png
+Files/Code/2_features_extraction/files/normal_02_n_30fps/normal_02_n_30fps_scores_n.xlsx
+Files/Code/2_features_extraction/files/palsy_17_r_30fps/palsy_17_r_30fps_scores_graphs.png
+Files/Code/2_features_extraction/files/palsy_17_r_30fps/palsy_17_r_30fps_scores_n.xlsx
+Files/Code/2_features_extraction/files/palsy_18_r_30fps/palsy_18_r_30fps_scores_graphs.png
+Files/Code/2_features_extraction/files/palsy_18_r_30fps/palsy_18_r_30fps_scores_n.xlsx
+Files/Code/2_features_extraction/files/palsy_19_r_25fps/palsy_19_r_25fps_scores_graphs.png
+Files/Code/2_features_extraction/files/palsy_19_r_25fps/palsy_19_r_25fps_scores_n.xlsx
