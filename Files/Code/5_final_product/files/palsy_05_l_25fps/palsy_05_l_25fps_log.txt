@@ -1,0 +1,8 @@
+Blink 1, Frame [57,60]: r = 0.00, l = 0.75, Trig = +0.75
+Blink 2, Frame [69,75]: r = 0.00, l = 0.75, Trig = +0.75
+Blink 3, Frame [82,93]: r = 0.00, l = 0.50, Trig = +0.50
+Blink 4, Frame [96,100]: r = 0.00, l = 0.75, Trig = +0.75
+Blink 5, Frame [111,119]: r = 0.00, l = 0.75, Trig = +0.75
+Blink 6, Frame [133,138]: r = 0.00, l = 0.75, Trig = +0.75
+Blink 7, Frame [150,158]: r = 0.00, l = 0.50, Trig = +0.50
+Blink 8, Frame [177,180]: r = 0.00, l = 0.75, Trig = +0.75
