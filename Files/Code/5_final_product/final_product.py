@@ -58,7 +58,7 @@ class LabelTool:
         self.total = 0
         self.tkImg = None
         self.palsy_eye_list = ['none','left','right']
-        self.classifiers_list = ['I-unQuantize','II-Quantize']
+        self.performance_list = ['Offline','Real-Time']
         self.dir_is_active = 0
         self.currentLabelIndex = 0
         self.precision_digits = 2
@@ -76,7 +76,7 @@ class LabelTool:
         
         # ----------------- GUI stuff ---------------------
         
-        # upper panel for path and configurations (dir, media, palsy eye, classifier)
+        # upper panel for path and configurations (dir, media, palsy eye, performance)
         self.upperPanel = Frame(self.frame)
         self.upperPanel.grid(row=0, column=1, sticky=W + E)
         
@@ -109,14 +109,14 @@ class LabelTool:
         self.palsyEyeList.grid(row=0, column=3)
         self.palsyEyeList.config(width=10)
         
-        self.label = Label(self.frame, text="Classifier:", width=10)
+        self.label = Label(self.frame, text="Performance:", width=10)
         self.label.grid(row=0, column=4, sticky=W + E)
-        self.classifierName = StringVar()
-        self.classifierName.set(self.classifiers_list[0])
-        self.classifierList = OptionMenu(self.frame, self.classifierName, *self.classifiers_list, command=self.setClassifier)
-        self.currentClassifier = self.classifierName.get()  # init
-        self.classifierList.grid(row=0, column=5)
-        self.classifierList.config(width=10)
+        self.performanceName = StringVar()
+        self.performanceName.set(self.performance_list[0])
+        self.performanceList = OptionMenu(self.frame, self.performanceName, *self.performance_list, command=self.setPerformance)
+        self.currentPerformance = self.performanceName.get()  # init
+        self.performanceList.grid(row=0, column=5)
+        self.performanceList.config(width=10)
         
         self.ldBtn = Button(self.frame, text="Run Media", width=10, background="green1", command=self.runMedia)
         self.ldBtn.grid(row=1, column=2, rowspan=1, columnspan=2, sticky=W + E)
@@ -476,11 +476,11 @@ class LabelTool:
                 ctypes.windll.user32.MessageBoxW(0,'Operation failed! Please load valid frames dir!',"Message",0)
     
     #%% define function
-    def setClassifier(self, event=None):
-        "set classifier"
+    def setPerformance(self, event=None):
+        "set performance"
         
-        self.currentClassifier = self.classifierName.get()
-        print('set current classifier to :', self.currentClassifier)
+        self.currentPerformance = self.performanceName.get()
+        print('set current performance to :', self.currentPerformance)
     
     #%% define function
     def setPalsyEye(self, event=None):
@@ -754,15 +754,7 @@ class LabelTool:
             else:
                 est_label = est_label_average
                 
-            # choose if to quentize label
-            if math.isnan(est_label):
-                est_label_quantize = est_label
-            elif self.currentClassifier == self.classifiers_list[0]: #'I-unQuantize'
-                est_label_quantize = est_label
-            elif self.currentClassifier == self.classifiers_list[1]: #'II-Quantize'
-                est_label_quantize = round(est_label/0.25)/4 # quantize to levels [0,0.25,0.5,0.75,1.0]
-                
-            return (est_label_quantize)
+            return (est_label)
         
         #%% define function
         def blink_slow_estimator(df_blink, clf, blink_consec, zero_cut=2, levels=5, num_frames=6):
@@ -1480,11 +1472,15 @@ class LabelTool:
             time_start = time.clock()
 
             # display resulting frame
-            frame_rgb = frame[...,[2,1,0]]
-            self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame_rgb))
-            self.mainPanel.create_image(0, 0, image = self.photo, anchor = NW)
-            self.mainPanel.update_idletasks()
-            
+            if self.currentPerformance == self.performance_list[0]: #'Offline'
+                frame_rgb = frame[...,[2,1,0]]
+                self.photo = ImageTk.PhotoImage(image = Image.fromarray(frame_rgb))
+                self.mainPanel.create_image(0, 0, image = self.photo, anchor = NW)
+                self.mainPanel.update_idletasks()
+            elif self.currentPerformance == self.performance_list[1]: #'Real-Time'
+                self.mainPanel.update_idletasks()
+                cv2.imshow('Frame', frame)
+			
             # Save resulting frame to images
             if arg_save_frame_features:
                 frame_feature_list.append(frame)
