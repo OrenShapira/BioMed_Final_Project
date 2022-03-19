@@ -15,8 +15,8 @@ echo 2. activate opencv library
 echo 3. set project directory
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 if "%version%" == "10.0" (
-call activate "opencv-env"
-cd "C:\Users\orens\Documents\GitHub\BioMed_Final_Project\Files\Code\4_training_classifiers"
+call activate activate "opencv-envpython=3.6"
+cd "D:\Projects\Academy\BioMed_Final_Project\Files\Code\4_training_classifiers"
 ) else (
 call activate "opencv-envpython=3.6"
 cd "C:\Users\אורן\Documents\GitHub\BioMed_Final_Project\Files\Code\4_training_classifiers")

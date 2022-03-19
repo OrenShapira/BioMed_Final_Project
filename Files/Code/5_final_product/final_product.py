@@ -11,7 +11,7 @@ import glob
 import matplotlib
 import ctypes
 import matplotlib.pyplot as plt
-import matplotlib.backends.tkagg as tkagg
+import matplotlib.backends.backend_tkagg as tkagg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import ast
 from imutils import face_utils
@@ -400,7 +400,7 @@ class LabelTool:
         figure_w, figure_h = int(figure_w+100), int(figure_h+100)
         self.figurePhoto = tk.PhotoImage(master=self.plotCurrEyePanel, width=figure_w, height=figure_h)
         self.plotCurrEyePanel.create_image(figure_w/2 + 25,figure_h/2 - 50,image=self.figurePhoto)
-        tkagg.blit(self.figurePhoto, figure_canvas_agg.get_renderer()._renderer, colormode=2)
+        tkagg.FigureCanvasTkAgg.blit(self.figurePhoto, figure_canvas_agg.get_renderer()._renderer)
     
     #%% define function
     def levelToPercentage(self, level):
@@ -890,7 +890,7 @@ class LabelTool:
         timing['save_to_offline_after_processing'] = []
         
         #%% Initialization
-        time_start = time.clock()
+        time_start = time.time()
         
         # cleaning
         self.clearAll()
@@ -908,10 +908,10 @@ class LabelTool:
         	# Get FPS of the camera and update the length of the sliding window
         	print("[INFO] calibrating FPS...")
         	num_frames = 100
-        	video_fps_start = time.clock()
+        	video_fps_start = time.time()
         	for i in range(0, num_frames):
         	    ret, frame = stream.read()
-        	video_fps_end = time.clock()
+        	video_fps_end = time.time()
         	video_fps  = int(num_frames / (video_fps_end - video_fps_start))
         	print("[INFO] Estimated FPS is: ",video_fps)
         	
@@ -1060,16 +1060,16 @@ class LabelTool:
         
         fps = FPS().start()
         
-        time_end = time.clock()
+        time_end = time.time()
         timing['initialization'].append(time_end - time_start)
         
         #%% Loop over frames from the video stream
         while True:
             # measure loop timing
-            frame_time_start = time.clock()
+            frame_time_start = time.time()
             
             #%% grab frame from video stream
-            time_start = time.clock()
+            time_start = time.time()
         
             # Grab the frame from the threaded video file stream
             (grabbed, frame) = stream.read()
@@ -1082,11 +1082,11 @@ class LabelTool:
                 # Get frame dimentions
                 height, width = frame.shape[:2]
             
-            time_end = time.clock()
+            time_end = time.time()
             timing['grab_frame'].append(time_end - time_start)
                 
             #%% Detect faces in the grayscale frame
-            time_start = time.clock()
+            time_start = time.time()
             
             if frame_number % arg_face_frame == 0 or len(rects) != 1:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -1115,11 +1115,11 @@ class LabelTool:
                     prev_rect_bottom = rects[0].bottom()+bbox_top
                     prev_rect = dlib.rectangle(left=prev_rect_left,top=prev_rect_top,right=prev_rect_right,bottom=prev_rect_bottom)
             
-            time_end = time.clock()
+            time_end = time.time()
             timing['detect_face'].append(time_end - time_start)
             
             #%% save raw video if reauired, add frame titles
-            time_start = time.clock()
+            time_start = time.time()
             
             if (source_is_webcam and arg_save_raw_webcam_to_db):
                 if (frame_number == 0):
@@ -1138,7 +1138,7 @@ class LabelTool:
             elapsed_time = frame_number / video_fps
             cv2.putText(frame, frame_name+", T = {:.2f} Sec".format(elapsed_time), text_pos_m[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[-1], 2)
             
-            time_end = time.clock()
+            time_end = time.time()
             timing['save_raw_video'].append(time_end - time_start)
             
             #%% operate according to number of faces in frame
@@ -1155,7 +1155,7 @@ class LabelTool:
                 
             else:
                 #%% draw face bounding box and landmarks and extract eye coordinates
-                time_start = time.clock()
+                time_start = time.time()
                 
                 # draw face bounding box if required
                 if(arg_show_face_bbox):
@@ -1179,50 +1179,50 @@ class LabelTool:
                 # Feature index
                 feature_index = 0                
                 
-                time_end = time.clock()
+                time_end = time.time()
                 timing['faciel_landmarks'].append(time_end - time_start)
                 
                 #%% Calculate relevant features
                 for feature in df_column:
                     
                     if feature   == 'ear':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         curr_h_score = eye_aspect_ratio(h_eye_shape)
                         curr_p_score = eye_aspect_ratio(p_eye_shape)
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['ear_feature'].append(time_end - time_start)
                         
                     elif feature == 'r2':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         [x_h, y_pred_h, curr_h_score] = calc_r2(h_eye_shape)
                         [x_p, y_pred_p, curr_p_score] = calc_r2(p_eye_shape)
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['feature'].append(time_end - time_start)
                         
                     elif feature == 'ellipse':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         curr_h_score = calc_ellipse_area(h_eye_shape)
                         curr_p_score = calc_ellipse_area(p_eye_shape)
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['ellipse_feature'].append(time_end - time_start)
                         
                     elif feature == 'poly':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         curr_h_score = poly_area(h_eye_shape)
                         curr_p_score = poly_area(p_eye_shape)
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['poly_feature'].append(time_end - time_start)
                         
                     elif feature == 'palsy':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         # if feature is palsy, update it directly
                         curr_h_score_n = 0
@@ -1231,11 +1231,11 @@ class LabelTool:
                         else:
                             curr_p_score_n = 1
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['palsy_feature'].append(time_end - time_start)
                         
                     elif feature == 'estimate_label':
-                        time_start = time.clock()
+                        time_start = time.time()
                         
                         # take mean of last consc_frames
                         try:
@@ -1253,11 +1253,11 @@ class LabelTool:
                         prev_h_estimate_labels.append(curr_h_score_n)
                         prev_p_estimate_labels.append(curr_p_score_n)
                         
-                        time_end = time.clock()
+                        time_end = time.time()
                         timing['estimate_label'].append(time_end - time_start)
                     
                     #%% Calculate normalized values
-                    time_start = time.clock()
+                    time_start = time.time()
                     
                     if (feature != 'palsy' and feature !='estimate_label'):
                         if (frame_number <= window_len_frame):
@@ -1280,11 +1280,11 @@ class LabelTool:
                     df_h_row_n.append(curr_h_score_n)
                     df_p_row_n.append(curr_p_score_n)
                     
-                    time_end = time.clock()
+                    time_end = time.time()
                     timing['normalize_feature'].append(time_end - time_start)
                     
                     #%% Visualize scores and features
-                    time_start = time.clock()
+                    time_start = time.time()
                     
                     # Visualize scores
                     if video_palsy_eye == 'l':
@@ -1319,11 +1319,11 @@ class LabelTool:
                     
                     feature_index = feature_index + 1
                     
-                    time_end = time.clock()
+                    time_end = time.time()
                     timing['plot_features'].append(time_end - time_start)
             
             #%% blink detection (fast and slow estimator)
-            time_start = time.clock()
+            time_start = time.time()
             
             # Blink detection (palsy: of healty eye, healty: of left eye)
             if (frame_number <= window_len_frame) or (len(rects) != 1):
@@ -1405,7 +1405,7 @@ class LabelTool:
                     output_h.seek(output_h_temp_buffering)
                     output_p.seek(output_p_temp_buffering)
                     # estimate blink quality
-                    time_start_slow_estimator = time.clock()
+                    time_start_slow_estimator = time.time()
                     
                     pd.read_csv(output_h, names=df_column)
                     blink_h_value = 0
@@ -1416,7 +1416,7 @@ class LabelTool:
                         blink_p_value = blink_slow_estimator(pd.read_csv(output_p, names=df_column), clf, arg_eye_blink_consec_frames)
                     trigger = blink_p_value - blink_h_value
                     
-                    time_end_slow_estimator = time.clock()
+                    time_end_slow_estimator = time.time()
                     timing['blink_detection_slow'].append(time_end_slow_estimator - time_start_slow_estimator)
                     
                     blink_details.append([blink_counter_buffering,blink_region_frames_temp_buffering_start,blink_region_frames_temp_buffering_end,
@@ -1453,11 +1453,11 @@ class LabelTool:
                     cv2.putText(frame, "({:.2f},{:.2f})".format(blink_p_value,blink_h_value), (595, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.5, blink_indication_color, 2)                
                     cv2.putText(frame, "(Trig +{:.2f})".format(trigger), (595, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, blink_indication_color, 2)
                     
-            time_end = time.clock()
+            time_end = time.time()
             timing['blink_detection_full'].append(time_end - time_start)
                     
             #%% Concatenate row to exist DataFrame
-            time_start = time.clock()
+            time_start = time.time()
             
             if (len(rects) == 1):
                 dataframe_row_pointer_h.append(output_h.tell())
@@ -1465,11 +1465,11 @@ class LabelTool:
                 csv_writer_h.writerow(df_h_row_n)
                 csv_writer_p.writerow(df_p_row_n)
                    
-            time_end = time.clock()
+            time_end = time.time()
             timing['save_to_df'].append(time_end - time_start)
             
             #%% display and save the resulting frame
-            time_start = time.clock()
+            time_start = time.time()
 
             # display resulting frame
             if self.currentPerformance == self.performance_list[0]: #'Offline'
@@ -1511,12 +1511,12 @@ class LabelTool:
             frame_number = frame_number + 1
             fps.update()
             
-            time_end = time.clock()
+            time_end = time.time()
             timing['display_frame'].append(time_end - time_start)
             timing['frame_process'].append(time_end - frame_time_start)
         
         #%% save after finish processing
-        time_start = time.clock()
+        time_start = time.time()
         
         # read to dataframe
         output_h.seek(0) # we need to get back to the start of the BytesIO
@@ -1562,11 +1562,11 @@ class LabelTool:
         print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         cv2.destroyAllWindows()
         
-        time_end = time.clock()
+        time_end = time.time()
         timing['save_after_processing'].append(time_end - time_start)
         
         #%% show graphs
-        time_start = time.clock()
+        time_start = time.time()
         
         if arg_show_score_graphs:
             print("[INFO] Plot score graphs")
@@ -1667,11 +1667,11 @@ class LabelTool:
             self.mainPanel.create_image(0, 0, image=self.tkImg, anchor=NW)
             ##plt.show()
         
-        time_end = time.clock()
+        time_end = time.time()
         timing['plot_after_processing'].append(time_end - time_start)
             
         #%% show timings
-        time_start = time.clock()
+        time_start = time.time()
         
         if arg_show_timing:    
             # Show timing histograms
@@ -1743,11 +1743,11 @@ class LabelTool:
             # show plot
             plt.show()
         
-        time_end = time.clock()
+        time_end = time.time()
         timing['timing_after_processing'].append(time_end - time_start)
         
         #%% save frames features
-        time_start = time.clock()
+        time_start = time.time()
         
         if arg_save_frame_features:
             print("[INFO] Save frame features to offline")
@@ -1780,7 +1780,7 @@ class LabelTool:
             self.currentPalsyEye = self.palsyEye.get()
             print('set current palsy eye to :', self.currentPalsyEye)
             
-        time_end = time.clock()
+        time_end = time.time()
         timing['save_to_offline_after_processing'].append(time_end - time_start)
 
         #%% print running times

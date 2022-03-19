@@ -13,7 +13,7 @@ import random
 import matplotlib
 import ctypes
 import matplotlib.pyplot as plt
-import matplotlib.backends.tkagg as tkagg
+import matplotlib.backends.backend_tkagg as tkagg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 # define tagging labels
@@ -342,7 +342,7 @@ class LabelTool:
         figure_w, figure_h = int(figure_w+100), int(figure_h+100)
         self.figurePhoto = tk.PhotoImage(master=self.plotCurrEyePanel, width=figure_w, height=figure_h)
         self.plotCurrEyePanel.create_image(figure_w/2 + 25,figure_h/2 - 50,image=self.figurePhoto)
-        tkagg.blit(self.figurePhoto, figure_canvas_agg.get_renderer()._renderer, colormode=2)
+        tkagg.FigureCanvasTkAgg.blit(self.figurePhoto, figure_canvas_agg.get_renderer()._renderer)
     
     def levelToPercentage(self, level):
         precentageFloat = level*100
